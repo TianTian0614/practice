@@ -144,7 +144,7 @@ cd ../frontend && npm install && npm run dev
 | 角色 | 用户名 | 密码 |
 | --- | --- | --- |
 | 管理员 | `admin` | `123456` |
-| 普通用户 | 前端自助注册 | `123456`（本地开发库含 farmer_wang / farmer_li / 示例账号，口令同） |
+| 普通用户 | 前端自助注册 | `123456`（本地开发库另含 farmer_wang / farmer_li 等示例账号，口令同） |
 
 > 生产环境请务必修改为强密码，并更换 `application.yml` 中的 `agri.jwt.secret`。
 
