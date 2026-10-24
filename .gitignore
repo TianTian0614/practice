@@ -1,0 +1,19 @@
+target/
+node_modules/
+dist/
+*.log
+.idea/
+.vscode/
+
+# 数据缓存与抓取产物（非源码，体积大且含第三方内容，不入库）
+_cache_*.json
+real_*_insert.sql
+real_agtech_*.sql
+seed_demo_supply_presale.sql
+collect_real_*.py
+gen_trace_demo.py
+trace_demo_insert.sql
+
+# 系统文件
+.DS_Store
+Thumbs.db
