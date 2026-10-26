@@ -2,9 +2,10 @@ package com.agriassist.service.impl;
 
 import com.agriassist.entity.Certification;
 import com.agriassist.exception.BusinessException;
+import com.agriassist.mq.NotificationEvent;
+import com.agriassist.mq.NotificationEventPublisher;
 import com.agriassist.repository.CertificationRepository;
 import com.agriassist.service.CertificationService;
-import com.agriassist.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +16,11 @@ import java.util.List;
 public class CertificationServiceImpl implements CertificationService {
 
     private final CertificationRepository repository;
-    private final NotificationService notificationService;
+    private final NotificationEventPublisher notificationPublisher;
 
-    public CertificationServiceImpl(CertificationRepository repository, NotificationService notificationService) {
+    public CertificationServiceImpl(CertificationRepository repository, NotificationEventPublisher notificationPublisher) {
         this.repository = repository;
-        this.notificationService = notificationService;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @Override
@@ -70,16 +71,19 @@ public class CertificationServiceImpl implements CertificationService {
         Certification saved = repository.save(c);
 
         String label = CertificationService.labelOf(c.getType());
+        NotificationEvent event;
         if (approve) {
-            notificationService.create(c.getUserId(), "SYSTEM",
+            event = new NotificationEvent(c.getUserId(), "SYSTEM",
                     "认证通过：" + label,
                     "您申请的【" + label + "】已通过审核，徽章已展示在个人主页。", "/mine");
         } else {
-            notificationService.create(c.getUserId(), "SYSTEM",
+            event = new NotificationEvent(c.getUserId(), "SYSTEM",
                     "认证未通过：" + label,
                     "您申请的【" + label + "】未通过审核，原因：" + (rejectReason == null ? "未说明" : rejectReason),
                     "/mine");
         }
+        // 异步解耦：通过 MQ（或本地 @Async 降级）投递通知，不阻塞审核主事务
+        notificationPublisher.publish(event);
         return saved;
     }
 }

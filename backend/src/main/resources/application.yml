@@ -26,6 +26,23 @@ spring:
         max-active: 8
         max-idle: 8
         min-idle: 1
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    # 无 broker 时不启动监听容器，避免应用启动失败
+    listener:
+      simple:
+        auto-startup: false
+    # 连接超时设短，发送失败时快速降级到 @Async 本地线程池
+    connection-timeout: 2000
+
+app:
+  # MQ 总开关：本地无 RabbitMQ 时为 false（自动降级到 @Async 同步落库）；
+  # docker-compose 起好 broker 后改为 true（阶段6），启用真正的消息队列异步
+  mq:
+    enabled: false
 
 agri:
   jwt:

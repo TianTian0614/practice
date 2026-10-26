@@ -5,9 +5,10 @@ import com.agriassist.entity.AuditLog;
 import com.agriassist.entity.Comment;
 import com.agriassist.entity.CommunityPost;
 import com.agriassist.exception.BusinessException;
+import com.agriassist.mq.NotificationEvent;
+import com.agriassist.mq.NotificationEventPublisher;
 import com.agriassist.repository.*;
 import com.agriassist.service.ContentService;
-import com.agriassist.service.NotificationService;
 import com.agriassist.service.PointService;
 import com.agriassist.service.SupplyDemandService;
 import org.springframework.stereotype.Service;
@@ -24,19 +25,19 @@ public class ContentServiceImpl implements ContentService {
     private final AuditLogRepository auditLogRepository;
     private final SupplyDemandService supplyDemandService;
     private final PointService pointService;
-    private final NotificationService notificationService;
+    private final NotificationEventPublisher notificationPublisher;
 
     public ContentServiceImpl(ArticleRepository articleRepository, CommunityPostRepository postRepository,
                               CommentRepository commentRepository, AuditLogRepository auditLogRepository,
                               SupplyDemandService supplyDemandService, PointService pointService,
-                              NotificationService notificationService) {
+                              NotificationEventPublisher notificationPublisher) {
         this.articleRepository = articleRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.auditLogRepository = auditLogRepository;
         this.supplyDemandService = supplyDemandService;
         this.pointService = pointService;
-        this.notificationService = notificationService;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @Override
@@ -96,9 +97,9 @@ public class ContentServiceImpl implements ContentService {
         post.setStatus("RESOLVED");
         postRepository.save(post);
         pointService.award(best.getUserId(), 10, "最佳答案", "COMMENT", commentId);
-        notificationService.create(best.getUserId(), "INTERACTION",
+        notificationPublisher.publish(new NotificationEvent(best.getUserId(), "INTERACTION",
                 "你的回答被选为最佳",
-                "你在帖子《" + post.getTitle() + "》中的回答被选为最佳答案，+10 积分", "/community/" + postId);
+                "你在帖子《" + post.getTitle() + "》中的回答被选为最佳答案，+10 积分", "/community/" + postId));
     }
 
     @Override

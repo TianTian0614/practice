@@ -1,6 +1,6 @@
 # agri-assist · 乡村数字化助农服务平台
 
-> 个人全栈项目，用于求职作品集展示。技术栈：**Spring Boot 3 + Vue 3 + MySQL + Ollama（本地大模型）**。
+> 个人全栈项目，用于求职作品集展示。技术栈：**Spring Boot 3 + Vue 3 + MySQL + Redis + RabbitMQ + Ollama（本地大模型）**。
 > 差异化内核：**RAG 本地知识库智能咨询**——检索与生成均可在本机完成，数据不出域。
 
 ---
@@ -12,6 +12,8 @@
 - **智能匹配与个性化推荐**：供需按"品类 + 地区 + 价格区间"规则匹配；推荐按"用户地区 + 订阅品类 + 热度 + 新鲜度衰减"多维打分排序。
 - **社区激励体系**：发帖/评论/采纳最佳答案自动计分，积分排行榜 + 等级体系；认证徽章（实名/产地/合作/专家/质检）驱动信任。
 - **数据可视化**：基于 ECharts 实现信息审核与运营统计面板。
+- **异步解耦（MQ 优先 + 本地降级）**：系统通知（审核通过、互动等）通过 RabbitMQ 异步投递，生产者失败时自动降级到 `@Async` 本地线程池落库，保证「无 broker 不丢消息、有 broker 真解耦」。
+- **缓存层（Redis）**：积分排行榜基于 Redis ZSet 实现，带 DB 预热与降级，支撑高并发 Top-N 查询。
 - **工程化**：前后端分离、RESTful API、OpenAPI（Swagger）文档、JPA `ddl-auto:update` 平滑迭代表结构。
 
 ---
@@ -22,6 +24,8 @@
 - Java 17 / Spring Boot 3.2
 - Spring Security + JWT（jjwt 0.12.5）
 - Spring Data JPA（Hibernate）+ MySQL 8
+- 缓存：Spring Data Redis（积分排行榜、热点数据）
+- 消息队列：Spring AMQP（RabbitMQ）—— 通知异步解耦，无 broker 时降级 `@Async`
 - SpringDoc OpenAPI（Swagger UI）
 - 本地大模型集成：Ollama（`deepseek-r1:1.5b`）/ 可选云端 OpenAI 兼容接口（如混元、DeepSeek）
 
